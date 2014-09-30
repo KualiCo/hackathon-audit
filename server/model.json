@@ -1,0 +1,72 @@
+{
+  "course" : [
+    {
+      "id": "CSE142",
+      "name": "Computer Programming I",
+      "credits": "5",
+      "requirements": [ "CS-CORE", "ENG"]
+    },
+    {
+      "id": "CSE428",
+      "name": "Computational Biology Capstone",
+      "credits": "5",
+      "requirements": [ "CS-CAPS" ]
+    },
+    {
+      "id": "ENG101",
+      "name": "English Composition",
+      "credits": "5",
+      "requirements": [ "VLPA", "WRITING" ]
+    }
+  ],
+
+  "student": [
+    {
+      "id": "jsmith123",
+      "name": "John Smith",
+      "completedCourses": [
+        "CSE142", "CSE143"
+      ]
+    }
+  ],
+
+  "requirement" : [
+    {
+      "id" : "VLPA",
+      "name" : "Visual, Literary, and Performing Arts"
+    },
+    {
+      "id" : "CS-CORE",
+      "name" : "Computer Science Core"
+    },
+    {
+      "id" : "CS-CAPS",
+      "name" : "Computer Science Capstone Design"
+    },
+    {
+      "id" : "WRITING",
+      "name" : "Writing Course"
+    }
+  ],
+
+  "degree" : [
+    {
+      "id" : "CS",
+      "name" : "Computer Science",
+      "requirements" : [
+        {
+          "name" : "CS-CORE",
+          "credits": 20
+        },
+        {
+          "name" : "CS-CAPS",
+          "credits": 10
+        },
+        {
+          "name" : "VLPA",
+          "credits" : 10
+        }
+      ]
+    }
+  ]
+}
