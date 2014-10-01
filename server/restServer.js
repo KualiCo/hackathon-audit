@@ -12,7 +12,7 @@ server.use(restify.queryParser());
 server.use(restify.bodyParser());
 server.use(restify.CORS());
 
-var PATH = '/course'
+var PATH = '/courses'
 server.get({path : PATH , version : '0.0.1'} , getAllCourses);
 //server.get({path : PATH +'/:jobId' , version : '0.0.1'} , findJob);
 //server.post({path : PATH , version: '0.0.1'} ,postNewJob);
@@ -27,5 +27,5 @@ server.listen(port ,ip_addr, function(){
 function getAllCourses(req, res , next) {
     res.setHeader('Access-Control-Allow-Origin','*');
 
-    res.send(200, persistence.Course.getAllSync());
+    res.send(200, persistence.Course.getAll().then());
 }

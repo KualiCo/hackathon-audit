@@ -1,5 +1,5 @@
 {
-  "course" : [
+  "courses" : [
     {
       "id": "CSE142",
       "name": "Computer Programming I",
@@ -20,7 +20,7 @@
     }
   ],
 
-  "student": [
+  "students": [
     {
       "id": "jsmith123",
       "name": "John Smith",
@@ -30,7 +30,7 @@
     }
   ],
 
-  "requirement" : [
+  "requirements" : [
     {
       "id" : "VLPA",
       "name" : "Visual, Literary, and Performing Arts"
@@ -49,7 +49,7 @@
     }
   ],
 
-  "degree" : [
+  "degrees" : [
     {
       "id" : "CS",
       "name" : "Computer Science",

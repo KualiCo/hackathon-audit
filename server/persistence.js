@@ -17,7 +17,7 @@ exports.Course = (function () {
 
     return {
         "getAll" : function() {
-            return new Promise(function(resolve, reject) { resolve(model.course); });
+            return new Promise(function(resolve, reject) { resolve(model.courses); });
 
             //// else get by id
             //r.table('course').run(connection, function(err, cursor) {
@@ -25,32 +25,54 @@ exports.Course = (function () {
             //    cursor.toArray(callback(err, result));
             //});
         },
+
         "getAllSync" : function() {
-            return model.course;
+            return model.courses;
+        },
+
+        "get" : function(id) {
+            return new Promise(function(resolve, reject) {
+                var course;
+
+                for (var i=0; i<model.courses.length; i++) {
+                    var c = model.courses[i];
+                    if (c.id === id) {
+                        course = c;
+                    }
+                }
+
+                resolve(course);
+            });
+
+            //// else get by id
+            //r.table('course').run(connection, function(err, cursor) {
+            //    if (err) throw err;
+            //    cursor.toArray(callback(err, result));
+            //});
         },
 
         "put" : function(course) {
             // TODO: persist or update depending on if exists
             var exists = false;
 
-            for (var i=0; i<model.course.length; i++) {
-                var c = model.course(i);
-                if (c.id == course.id) {
+            for (var i=0; i<model.courses.length; i++) {
+                var c = model.courses[i];
+                if (c.id === course.id) {
                     // replace
                     exists = true;
-                    model.course[i] = course;
+                    model.courses[i] = course;
                 }
             }
 
-            if (!exists) model.course.push(course)
+            if (!exists) model.courses.push(course)
         },
 
         "delete" : function(id) {
-            for (var i=0; i<model.course.length; i++) {
-                var c = model.course(i);
-                if (c.id == course.id) {
+            for (var i=0; i<model.courses.length; i++) {
+                var c = model.courses[i];
+                if (c.id === course.id) {
                     // nuke
-                    model.course.splice(i, 1);
+                    model.courses.splice(i, 1);
                 }
             }
         }
