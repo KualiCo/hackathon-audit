@@ -32,18 +32,24 @@ app.get('/bootstrap', function*(next) {
 // TODO: make handler methods gracefully handle exceptions
 // TODO: make responses sensible in error cases e.g. http://www.restapitutorial.com/lessons/httpmethods.html
 // Export a resource for each entity
-['courses', 'students', 'requirements', 'degrees'].forEach(function(resourceName) {
+[
+    ['courses', 'Course'],
+    ['students', 'Student'],
+    ['requirements', 'Requirement'],
+    ['degrees', 'Degree']
+].forEach(function(resourceInfo) {
 
-    var resourceNameSingular = resourceName.substr(0, resourceName.length-1);
+    var resourceName = resourceInfo[0];
+    var resourceNameSingular = resourceInfo[1];
 
     app.get('/' +resourceName+ '/', function*(next) {
-        var results = yield persistence.Course.getAll();
+        var results = yield persistence[resourceNameSingular].getAll();
         this.body = results;
     });
 
     app.get('/' +resourceName+ '/:id', function*(next) {
         try {
-            var results = yield persistence.Course.get(this.params.id)
+            var results = yield persistence[resourceNameSingular].get(this.params.id)
         } catch (err) {
             this.status = 404;
             this.body = err;
@@ -62,7 +68,7 @@ app.get('/bootstrap', function*(next) {
             return;
         }
 
-        var result = yield persistence.Course.update(this.request.body);
+        var result = yield persistence[resourceNameSingular].update(this.request.body);
 
         if (!result) {
             this.response.status = 404;
@@ -74,7 +80,7 @@ app.get('/bootstrap', function*(next) {
 
     // DELETE to /<resource>/:id to delete
     app.delete('/' +resourceName+ '/:id', function*(next) {
-        var result = yield persistence.Course.delete(this.params.id);
+        var result = yield persistence[resourceNameSingular].delete(this.params.id);
 
         if (!result) {
             this.response.status = 404;
