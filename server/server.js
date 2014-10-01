@@ -31,58 +31,64 @@ app.get('/bootstrap', function*(next) {
 
 // TODO: make handler methods gracefully handle exceptions
 // TODO: make responses sensible in error cases e.g. http://www.restapitutorial.com/lessons/httpmethods.html
+// Export a resource for each entity
+['courses', 'students', 'requirements', 'degrees'].forEach(function(resourceName) {
 
-app.get('/courses/', function*(next) {
-    var results = yield persistence.Course.getAll();
-    this.body = results;
-});
+    var resourceNameSingular = resourceName.substr(0, resourceName.length-1);
 
-app.get('/courses/:id', function*(next) {
-    try {
-        var results = yield persistence.Course.get(this.params.id)
-    } catch (err) {
-        this.status = 404;
-        this.body = err;
-        return; // yep, early return
-    }
+    app.get('/' +resourceName+ '/', function*(next) {
+        var results = yield persistence.Course.getAll();
+        this.body = results;
+    });
 
-    this.body = results;
-});
+    app.get('/' +resourceName+ '/:id', function*(next) {
+        try {
+            var results = yield persistence.Course.get(this.params.id)
+        } catch (err) {
+            this.status = 404;
+            this.body = err;
+            return; // yep, early return
+        }
 
-// PUT to /courses/:id to update
-app.put('/courses/:id', function*(next) {
-    // validate that the ID matches that of the object
-    if ( ! (this.params.id === this.request.body.id)) {
-        this.response.status = 422;
-        this.response.body = "identifier mismatch between resource location and entity";
-        return;
-    }
+        this.body = results;
+    });
 
-    var result = yield persistence.Course.update(this.request.body);
+    // PUT to /<resource>/:id to update
+    app.put('/' +resourceName+ '/:id', function*(next) {
+        // validate that the ID matches that of the object
+        if ( ! (this.params.id === this.request.body.id)) {
+            this.response.status = 422;
+            this.response.body = "identifier mismatch between resource location and " + resourceNameSingular;
+            return;
+        }
 
-    if (!result) {
-        this.response.status = 404;
-        this.response.body = "not found: " + result;
-    }
+        var result = yield persistence.Course.update(this.request.body);
 
-    this.body = "updated course " + this.params.id;
-});
+        if (!result) {
+            this.response.status = 404;
+            this.response.body = "not found: " + result;
+        }
 
-// DELETE to /courses/:id to delete
-app.delete('/courses/:id', function*(next) {
-    var result = yield persistence.Course.delete(this.params.id);
+        this.body = "updated " + resourceNameSingular + " " + this.params.id;
+    });
 
-    if (!result) {
-        this.response.status = 404;
-        this.response.body = "not found: " + result;
-    }
+    // DELETE to /<resource>/:id to delete
+    app.delete('/' +resourceName+ '/:id', function*(next) {
+        var result = yield persistence.Course.delete(this.params.id);
 
-    this.body = "deleted course " + this.params.id;
-});
+        if (!result) {
+            this.response.status = 404;
+            this.response.body = "not found: " + result;
+        }
+
+        this.body = "deleted " + resourceNameSingular + " " + this.params.id;
+    });
 
 
-// POST to /courses/ to create new
+// POST to /<resource>/ to create new
 // ...
+});
+
 
 // EXAMPLE: call a database
 function getMessage() {

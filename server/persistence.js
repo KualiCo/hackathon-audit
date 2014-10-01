@@ -18,14 +18,15 @@ onConnect(function(err, conn) {
     connection = conn;
 })
 
-exports.Course = (function () {
-    // TODO: validate object structure for all functions accepting courses as args
+var CRUDService = function (t) {
+    // TODO: validate object structure for all functions accepting courses as args.  Need a callback for that.
 
+    var table = t
 
     return {
         "getAll" : function() {
             return new Promise(function(resolve, reject) {
-                r.table('courses').run(connection, function(err, cursor) {
+                r.table(table).run(connection, function(err, cursor) {
                     if (err) reject(err);
                     cursor.toArray(function(err, result) {
                         if (err) throw err;
@@ -37,7 +38,7 @@ exports.Course = (function () {
 
         "get" : function(id) {
             return new Promise(function(resolve, reject) {
-                r.table('courses').filter(r.row('id').eq(id)).run(connection, function(err, cursor) {
+                r.table(table).filter(r.row('id').eq(id)).run(connection, function(err, cursor) {
                     if (err) reject(err);
                     cursor.toArray(function(err, result) {
                         if (err) throw err;
@@ -57,7 +58,7 @@ exports.Course = (function () {
         "update" : function(course) {
             return new Promise(function(resolve, reject) {
                 // what happens if there is no course with the given ID?
-                r.table("courses").get(course.id).replace(course).run(connection, function(err, result) {
+                r.table(table).get(course.id).replace(course).run(connection, function(err, result) {
                     if (err) reject(err);
                     console.log(result);
                     if (result.replaced == 1 || result.unchanged == 1) {
@@ -72,7 +73,7 @@ exports.Course = (function () {
         "delete" : function(id) {
             return new Promise(function(resolve, reject) {
                 // what happens if there is no course with the given ID?
-                r.table("courses").get(id).delete().run(connection, function(err, result) {
+                r.table(table).get(id).delete().run(connection, function(err, result) {
                     if (err) reject(err);
                     console.log(result);
                     if (result.deleted == 1) {
@@ -85,7 +86,13 @@ exports.Course = (function () {
         }
     }
 
-})();
+};
+
+exports.Course = CRUDService('courses');
+exports.Student = CRUDService('students');
+exports.Requirement = CRUDService('requirements');
+exports.Degree = CRUDService('degrees');
+
 
 exports.bootstrap = function() {
     // TODO: extract database config
