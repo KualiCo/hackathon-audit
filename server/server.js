@@ -20,7 +20,7 @@ app.use(router(app));
 var server = require('http').Server(app.callback());
 
 app.get('/', function*(next) {
-    this.body = {message: "Hello World -- your degree audit dreams are coming true"}
+    this.body = {message: "You're probably running this wrong, use 'npm start'"}
 });
 
 // TODO: you really wouldn't want to expose this "resource"
@@ -39,61 +39,62 @@ app.get('/bootstrap', function*(next) {
     ['degrees', 'Degree']
 ].forEach(function(resourceInfo) {
 
-    var resourceName = resourceInfo[0];
-    var resourceNameSingular = resourceInfo[1];
+        var resourceName = resourceInfo[0];
+        var resourceNameSingular = resourceInfo[1];
+        var persistenceModule = resourceInfo[1];
 
-    app.get('/' +resourceName+ '/', function*(next) {
-        var results = yield persistence[resourceNameSingular].getAll();
-        this.body = results;
-    });
+        app.get('/' +resourceName+ '/', function*(next) {
+            var results = yield persistence[resourceNameSingular].getAll();
+            this.body = results;
+        });
 
-    app.get('/' +resourceName+ '/:id', function*(next) {
-        try {
-            var results = yield persistence[resourceNameSingular].get(this.params.id)
-        } catch (err) {
-            this.status = 404;
-            this.body = err;
-            return; // yep, early return
-        }
+        app.get('/' +resourceName+ '/:id', function*(next) {
+            try {
+                var results = yield persistence[resourceNameSingular].get(this.params.id)
+            } catch (err) {
+                this.status = 404;
+                this.body = err;
+                return; // yep, early return
+            }
 
-        this.body = results;
-    });
+            this.body = results;
+        });
 
-    // PUT to /<resource>/:id to update
-    app.put('/' +resourceName+ '/:id', function*(next) {
-        // validate that the ID matches that of the object
-        if ( ! (this.params.id === this.request.body.id)) {
-            this.response.status = 422;
-            this.response.body = "identifier mismatch between resource location and " + resourceNameSingular;
-            return;
-        }
+        // PUT to /<resource>/:id to update
+        app.put('/' +resourceName+ '/:id', function*(next) {
+            // validate that the ID matches that of the object
+            if ( ! (this.params.id === this.request.body.id)) {
+                this.response.status = 422;
+                this.response.body = "identifier mismatch between resource location and " + resourceNameSingular;
+                return;
+            }
 
-        var result = yield persistence[resourceNameSingular].update(this.request.body);
+            var result = yield persistence[resourceNameSingular].update(this.request.body);
 
-        if (!result) {
-            this.response.status = 404;
-            this.response.body = "not found: " + result;
-        }
+            if (!result) {
+                this.response.status = 404;
+                this.response.body = "not found: " + result;
+            }
 
-        this.body = "updated " + resourceNameSingular + " " + this.params.id;
-    });
+            this.body = "updated " + resourceNameSingular + " " + this.params.id;
+        });
 
-    // DELETE to /<resource>/:id to delete
-    app.delete('/' +resourceName+ '/:id', function*(next) {
-        var result = yield persistence[resourceNameSingular].delete(this.params.id);
+        // DELETE to /<resource>/:id to delete
+        app.delete('/' +resourceName+ '/:id', function*(next) {
+            var result = yield persistence[resourceNameSingular].delete(this.params.id);
 
-        if (!result) {
-            this.response.status = 404;
-            this.response.body = "not found: " + result;
-        }
+            if (!result) {
+                this.response.status = 404;
+                this.response.body = "not found: " + result;
+            }
 
-        this.body = "deleted " + resourceNameSingular + " " + this.params.id;
-    });
+            this.body = "deleted " + resourceNameSingular + " " + this.params.id;
+        });
 
 
 // POST to /<resource>/ to create new
 // ...
-});
+    });
 
 
 // EXAMPLE: call a database
