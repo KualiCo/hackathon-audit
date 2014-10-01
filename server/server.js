@@ -23,24 +23,63 @@ app.get('/', function*(next) {
     this.body = {message: "Hello World -- your degree audit dreams are coming true"}
 });
 
+// TODO: you really wouldn't want to expose this "resource"
+app.get('/bootstrap', function*(next) {
+    persistence.bootstrap();
+    this.body = "database reset"
+});
+
+// TODO: make handler methods gracefully handle exceptions
+// TODO: make responses sensible in error cases e.g. http://www.restapitutorial.com/lessons/httpmethods.html
+
 app.get('/courses/', function*(next) {
     var results = yield persistence.Course.getAll();
     this.body = results;
 });
 
 app.get('/courses/:id', function*(next) {
-    var results = yield persistence.Course.get(this.params.id)
+    try {
+        var results = yield persistence.Course.get(this.params.id)
+    } catch (err) {
+        this.status = 404;
+        this.body = err;
+        return; // yep, early return
+    }
+
     this.body = results;
 });
 
 // PUT to /courses/:id to update
 app.put('/courses/:id', function*(next) {
-    console.log(this.request.body);
-    // XXX: broken atm, need to figure out how to get the body cleanly
-    // this is what comes back:
-    // { '{ "id": "ENG101", "name": "English Composition II", "credits": "5" }': '' }
-    persistence.Course.put(this.request.body)
+    // validate that the ID matches that of the object
+    if ( ! (this.params.id === this.request.body.id)) {
+        this.response.status = 422;
+        this.response.body = "identifier mismatch between resource location and entity";
+        return;
+    }
+
+    var result = yield persistence.Course.update(this.request.body);
+
+    if (!result) {
+        this.response.status = 404;
+        this.response.body = "not found: " + result;
+    }
+
+    this.body = "updated course " + this.params.id;
 });
+
+// DELETE to /courses/:id to delete
+app.delete('/courses/:id', function*(next) {
+    var result = yield persistence.Course.delete(this.params.id);
+
+    if (!result) {
+        this.response.status = 404;
+        this.response.body = "not found: " + result;
+    }
+
+    this.body = "deleted course " + this.params.id;
+});
+
 
 // POST to /courses/ to create new
 // ...
@@ -49,7 +88,6 @@ app.put('/courses/:id', function*(next) {
 function getMessage() {
 
 }
-
 
 server.listen(3000);
 console.log('server listening on port 3000');

@@ -1,6 +1,8 @@
 var r = require('rethinkdb')
 var Promise = require('bluebird')
 
+var connection;
+
 var onConnect = function(callback) {
 
     r.connect( {host: 'localhost', port: 28015}, function(err, conn) {
@@ -11,71 +13,103 @@ var onConnect = function(callback) {
     })
 };
 
-var model = require("./model.json");
+// TODO: this should init at startup, but someone could conceivably make a call before it's inited -- use a Promise
+onConnect(function(err, conn) {
+    connection = conn;
+})
 
 exports.Course = (function () {
+    // TODO: validate object structure for all functions accepting courses as args
+
 
     return {
         "getAll" : function() {
-            return new Promise(function(resolve, reject) { resolve(model.courses); });
-
-            //// else get by id
-            //r.table('course').run(connection, function(err, cursor) {
-            //    if (err) throw err;
-            //    cursor.toArray(callback(err, result));
-            //});
-        },
-
-        "getAllSync" : function() {
-            return model.courses;
+            return new Promise(function(resolve, reject) {
+                r.table('courses').run(connection, function(err, cursor) {
+                    if (err) reject(err);
+                    cursor.toArray(function(err, result) {
+                        if (err) throw err;
+                        resolve(result);
+                    });
+                });
+            });
         },
 
         "get" : function(id) {
             return new Promise(function(resolve, reject) {
-                var course;
+                r.table('courses').filter(r.row('id').eq(id)).run(connection, function(err, cursor) {
+                    if (err) reject(err);
+                    cursor.toArray(function(err, result) {
+                        if (err) throw err;
 
-                for (var i=0; i<model.courses.length; i++) {
-                    var c = model.courses[i];
-                    if (c.id === id) {
-                        course = c;
-                    }
-                }
-
-                resolve(course);
+                        if (result.length == 0) {
+                            reject("none found for id " + id);
+                        } else if (result.length > 1) {
+                            reject("multiple results for id " + id);
+                        } else {
+                            resolve(result[0]);
+                        }
+                    });
+                });
             });
-
-            //// else get by id
-            //r.table('course').run(connection, function(err, cursor) {
-            //    if (err) throw err;
-            //    cursor.toArray(callback(err, result));
-            //});
         },
 
-        "put" : function(course) {
-            // TODO: persist or update depending on if exists
-            var exists = false;
-
-            for (var i=0; i<model.courses.length; i++) {
-                var c = model.courses[i];
-                if (c.id === course.id) {
-                    // replace
-                    exists = true;
-                    model.courses[i] = course;
-                }
-            }
-
-            if (!exists) model.courses.push(course)
+        "update" : function(course) {
+            return new Promise(function(resolve, reject) {
+                // what happens if there is no course with the given ID?
+                r.table("courses").get(course.id).replace(course).run(connection, function(err, result) {
+                    if (err) reject(err);
+                    console.log(result);
+                    if (result.replaced == 1 || result.unchanged == 1) {
+                        resolve(result);
+                    } else {
+                        reject(result);
+                    }
+                });
+            });
         },
 
         "delete" : function(id) {
-            for (var i=0; i<model.courses.length; i++) {
-                var c = model.courses[i];
-                if (c.id === course.id) {
-                    // nuke
-                    model.courses.splice(i, 1);
-                }
-            }
+            return new Promise(function(resolve, reject) {
+                // what happens if there is no course with the given ID?
+                r.table("courses").get(id).delete().run(connection, function(err, result) {
+                    if (err) reject(err);
+                    console.log(result);
+                    if (result.deleted == 1) {
+                        resolve(result);
+                    } else {
+                        reject(result);
+                    }
+                });
+            });
         }
     }
 
 })();
+
+exports.bootstrap = function() {
+    // TODO: extract database config
+
+    var model = require("./model.json");
+
+    onConnect(function (err, connection) {
+        if (r.dbList().contains('audit')) {
+            r.dbDrop('audit').run(connection, function() {});
+        }
+
+        r.dbCreate('audit').run(connection, function() {});;
+        connection.use('audit');
+
+        ['courses', 'students', 'requirements', 'degrees'].forEach(function(tableName) {
+            r.db('audit').tableCreate(tableName).run(connection, function (err, result) {
+                if (err) throw err;
+                console.log("create table ", tableName ,": ", JSON.stringify(result, null, 2));
+            })
+
+            r.table(tableName).insert(model[tableName]).run(connection, function (err, result) {
+                if (err) throw err;
+                console.log("insert bootstrap data into ", tableName, ": ", JSON.stringify(result, null, 2));
+            })
+        })
+    });
+}
