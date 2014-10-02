@@ -26,6 +26,7 @@
     {
       "id": "1234567890",
       "name": "John Smith",
+      "login": "jsmith123",
       "completedCourses": [
         "CSE142", "CSE428"
       ]
@@ -70,6 +71,18 @@
           "name" : "CS-CAPS",
           "credits": 5
         },
+        {
+          "name" : "VLPA",
+          "credits" : 10
+        }
+      ]
+    },
+    {
+      "id" : "BS-PHYS",
+      "type" : "Bachelors",
+      "domain" : "Science",
+      "program" : "Physics",
+      "requirements" : [
         {
           "name" : "VLPA",
           "credits" : 10

@@ -1,12 +1,28 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
       <title>Hello World</title>
       <script src="http://fb.me/react-0.10.0.js"></script>
       <script src="http://fb.me/JSXTransformer-0.10.0.js"></script>
       <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+
+      <!-- Bootstrap core CSS -->
+      <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+
+      <!-- Optional Bootstrap Theme -->
+      <link href="data:text/css;charset=utf-8," data-href="http://getbootstrap.com/dist/css/bootstrap-theme.min.css" rel="stylesheet" id="bs-theme-stylesheet">
+
   </head>
   <body>
-    <script src="bundle.js"></script>
-    <div id="content"></div>
+  <div class="container-fluid">
+      <div>logged in as <strong>John Smith</strong> (jsmith123)</div>
+      <h1 class="page-header">Degree Audit</h1>
+
+      <div id="auditBox"></div>
+  </div>
+
+  <!-- seems to need this at the bottom :-| -->
+  <script src="bundle.js"></script>
+
   </body>
 </html>
