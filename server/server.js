@@ -6,6 +6,7 @@ var router = require('koa-router');
 var serve = require('koa-static');
 var body = require('koa-body');
 var persistence = require('./persistence.js');
+var audit = require('./audit.js');
 
 // --- Koa Setup ---------------------------------------------------------------
 
@@ -92,9 +93,21 @@ app.get('/bootstrap', function*(next) {
         });
 
 
-// POST to /<resource>/ to create new
-// ...
+        // POST to /<resource>/ to create new
+        // ...
     });
+
+app.get('/audit/degrees/:degreeId/students/:studentId', function*(next) {
+    try {
+        var result = yield audit.report(this.params.studentId, this.params.degreeId);
+    } catch (err) {
+        this.status = 404;
+        this.body = err;
+        return; // early return
+    }
+
+    this.body = result;
+});
 
 
 // EXAMPLE: call a database

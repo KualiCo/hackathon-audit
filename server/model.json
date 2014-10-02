@@ -1,4 +1,6 @@
 {
+  "_comment" : "Note that some of these structures will require a versioning scheme",
+
   "courses" : [
     {
       "id": "CSE142",
@@ -22,10 +24,10 @@
 
   "students": [
     {
-      "id": "jsmith123",
+      "id": "1234567890",
       "name": "John Smith",
       "completedCourses": [
-        "CSE142", "CSE143"
+        "CSE142", "CSE428"
       ]
     }
   ],
@@ -46,13 +48,19 @@
     {
       "id" : "WRITING",
       "name" : "Writing Course"
+    },
+    {
+      "id" : "ENG",
+      "name" : "Engineering"
     }
   ],
 
   "degrees" : [
     {
-      "id" : "CS",
-      "name" : "Computer Science",
+      "id" : "BS-CS",
+      "type" : "Bachelors",
+      "domain" : "Science",
+      "program" : "Computer Science",
       "requirements" : [
         {
           "name" : "CS-CORE",
@@ -60,7 +68,7 @@
         },
         {
           "name" : "CS-CAPS",
-          "credits": 10
+          "credits": 5
         },
         {
           "name" : "VLPA",
