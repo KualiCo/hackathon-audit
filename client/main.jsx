@@ -66,13 +66,49 @@ var AuditForm = React.createClass({
     }
 });
 
+var AuditHeader = React.createClass({
+    loadDegree: function() {
+        var resourceUrl = "degrees/" + this.props.degreeId;
+        $.ajax({
+            url: resourceUrl,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(resourceUrl, status, err.toString());
+            }.bind(this)
+        });
+    },
+    getInitialState: function() {
+        return {data: {}};
+    },
+    componentDidMount: function() {
+        this.loadDegree();
+    },
+    render: function() {
+        var degreeInfo = this.props.degreeId;
+        var degree = this.state.data;
+
+        if (degree.id) {
+            degreeInfo = degree.type  + " of " + degree.domain + " in " + degree.program;
+        }
+
+        return (
+            <h2>
+                Requirements for {degreeInfo}
+            </h2>
+        );
+    }
+})
+
 var AuditResults = React.createClass({
     loadAudit: function() {
         $.ajax({
             url: this.props.url,
             dataType: 'json',
-            success: function(data) {
-                this.setState({data: data});
+            success: function(auditData) {
+                this.setState({data: auditData});
             }.bind(this),
             error: function(xhr, status, err) {
                 console.error(this.props.url, status, err.toString());
@@ -129,11 +165,10 @@ var AuditResults = React.createClass({
             });
         }
 
-
         return (
             <div>
                 <h1 className="page-header">Results</h1>
-                <h2>Requirements</h2>
+                <AuditHeader degreeId={this.props.degreeId} />
                 <h3>Met</h3>
                 <ul>
                 {metNodes}
@@ -231,120 +266,11 @@ var AuditBox = React.createClass({
         return (
             <div>
                 <AuditForm />
-                <AuditResults url="audit/degrees/BS-CS/students/1234567890" />
+                <AuditResults url="audit/degrees/BS-CS/students/1234567890" degreeId="BS-CS" />
             </div>
         );
     }
 });
-
-
-
-/*
- * The details of a Course.
- */
-var Course = React.createClass({
-    render: function() {
-        return (
-            <div className="course">
-                <h3 className="courseDetails">
-                    {this.props.title} ({this.props.code}) {this.props.credits} credits
-                </h3>
-            </div>
-        );
-    }
-});
-
-var CourseSearchForm = React.createClass({
-    handleSubmit: function(e) {
-        e.preventDefault();
-        var searchString = this.refs.searchString.getDOMNode().value.trim();
-        if (!searchString) {
-            return;
-        }
-        this.props.onCourseSubmit({searchString: searchString});
-        this.refs.searchString.getDOMNode().value = '';
-        return;
-    },
-    render: function() {
-        return (
-            <form className="courseSerachForm" onSubmit={this.handleSubmit}>
-                <input type="text" placeholder="Course Title or Code" ref="searchString" />
-                <input type="submit" value="Search" />
-            </form>
-        );
-    }
-});
-
-/* A list of Courses */
-var CourseList = React.createClass({
-    render: function() {
-        var courseNodes = this.props.data.map(function(course, index) {
-            return (
-                <li><Course title={course.name} code={course.id} credits={course.credits} key={index} /></li>
-            );
-        });
-        return (
-            <div className="courseList">
-                <ul>
-                {courseNodes}
-                </ul>
-            </div>
-        );
-    }
-});
-
-/* Container for a list of Courses */
-var CourseBox = React.createClass({
-    loadCoursesFromServer: function() {
-        $.ajax({
-            url: this.props.url,
-            dataType: 'json',
-            success: function(data) {
-                this.setState({data: data});
-            }.bind(this),
-            error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this)
-        });
-    },
-    handleCourseSearch: function(course) {
-        var courses = this.state.data;
-        courses.push(course);
-        this.setState({data: courses}, function() {
-            $.ajax({
-                url: this.props.url,
-                dataType: 'json',
-                type: 'POST',
-                data: course,
-                success: function(data) {
-                    this.setState({data: data});
-                }.bind(this),
-                error: function(xhr, status, err) {
-                    console.error(this.props.url, status, err.toString());
-                }.bind(this)
-            });
-        });
-    },
-    getInitialState: function() {
-        return {data: []};
-    },
-    componentDidMount: function() {
-        this.loadCoursesFromServer();
-    },
-    render: function() {
-        return (
-            <div className="courseBox">
-                <h1>Courses</h1>
-                <CourseList data={this.state.data} />
-            </div>
-        );
-    }
-});
-
-//React.renderComponent(
-//    <CourseBox url="courses/" />,
-//    document.body
-//);
 
 React.renderComponent(
     <AuditBox/>
@@ -352,8 +278,3 @@ React.renderComponent(
     document.getElementById('auditBox')
 );
 
-//React.renderComponent(
-//    <AuditResults/>
-//    ,
-//    document.getElementById('auditResults')
-//);
