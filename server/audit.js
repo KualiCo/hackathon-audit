@@ -14,17 +14,20 @@ exports.report = function(studentId, degreeId) {
             "metRequirements" : [
             {
                 "id" : "CS-CAPS",
-                "metby" : [ "CSE428" ]
+                "metby" : [ "CSE428" ],
+                "requiredCredits" : 5
             }
         ],
             "unmetRequirements" : [
             {
                 "id" : "CS-CORE",
-                "metby" : [ "CSE142" ]
+                "metby" : [ "CSE142" ],
+                "requiredCredits" : 20
             },
             {
                 "id" : "VLPA",
-                "metby" : []
+                "metby" : [],
+                "requiredCredits" : 10
             }
         ]
     };

@@ -91,12 +91,12 @@ var AuditResults = React.createClass({
             metNodes = this.state.data.metRequirements.map(function(req, index) {
                 var metByNodes = req.metby.map(function(courseId, index) {
                     return (
-                        <li> {courseId} </li>
+                        <li><CourseItem courseId={courseId}/></li>
                     );
                 });
                 return (
-                        <li> <h3>{req.id}</h3>
-                            met by:
+                        <li> <Requirement requirementId={req.id} requiredCredits={req.requiredCredits} />
+                            &nbsp;met by:
                             <ul>
                             {metByNodes}
                             </ul>
@@ -108,14 +108,19 @@ var AuditResults = React.createClass({
         var unmetNodes = "";
         if (this.state.data.unmetRequirements) {
             unmetNodes = this.state.data.unmetRequirements.map(function(req, index) {
+
+                var metByText = "";
+                if (req.metby && req.metby.length > 0) {
+                    metByText = ", partially met by:";
+                }
                 var metByNodes = req.metby.map(function(courseId, index) {
                     return (
-                        <li> {courseId} </li>
+                        <li><CourseItem courseId={courseId}/></li>
                     );
                 });
                 return (
-                    <li> <h3>{req.id}</h3>
-                        partially met by:
+                    <li> <Requirement requirementId={req.id} requiredCredits={req.requiredCredits} />
+                        {metByText}
                         <ul>
                             {metByNodes}
                         </ul>
@@ -128,15 +133,95 @@ var AuditResults = React.createClass({
         return (
             <div>
                 <h1 className="page-header">Results</h1>
-                <h2>Met Requirements</h2>
+                <h2>Requirements</h2>
+                <h3>Met</h3>
                 <ul>
                 {metNodes}
                 </ul>
-                <h2>Requirements Unmet</h2>
+                <h3>Unmet</h3>
                 <ul>
                 {unmetNodes}
                 </ul>
             </div>
+        );
+    }
+});
+
+var Requirement = React.createClass({
+    loadRequirementDetails: function() {
+        var url = "requirements/" + this.props.requirementId;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    getInitialState: function() {
+        return {data: undefined};
+    },
+    componentDidMount: function() {
+        this.loadRequirementDetails();
+    },
+    render: function() {
+        var requirementId = this.props.requirementId;
+        var requiredCredits = this.props.requiredCredits;
+
+        if (this.state.data) {
+            var requirement = this.state.data;
+            var requirementUrl = "requirements/" + requirement.id;
+            return (
+                <span>
+                    <a href={requirementUrl}>{requirement.id}</a>:&nbsp;
+                    <strong>{requirement.name}</strong>, requires {requiredCredits} credits
+                </span>
+            );
+        };
+
+        // default
+        return (
+            <span>{this.props.requirementId}: requires {this.props.requiredCredits} credits</span>
+        );
+    }
+});
+
+var CourseItem = React.createClass({
+    loadCourseDetails: function() {
+        var url = "courses/" + this.props.courseId;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    getInitialState: function() {
+        return {data: undefined};
+    },
+    componentDidMount: function() {
+        this.loadCourseDetails();
+    },
+    render: function() {
+
+        if (this.state.data) {
+            var course = this.state.data;
+            var courseUrl = "courses/" + course.id;
+            return (
+                <span><a href={courseUrl}>{course.id}</a>: {course.name}, {course.credits} credits</span>
+            );
+        };
+
+        // default
+        return (
+            <span>{this.props.courseId}</span>
         );
     }
 });
