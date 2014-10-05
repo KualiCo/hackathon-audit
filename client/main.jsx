@@ -6,62 +6,115 @@ var React = require('react');
 
 /** @jsx React.DOM */
 
-/* A selector for degrees */
-var DegreeSelect = React.createClass({
-    loadDegrees: function() {
-        $.ajax({
-            url: this.props.url,
-            dataType: 'json',
-            success: function(data) {
-                this.setState({degreeData: data});
-            }.bind(this),
-            error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this)
-        });
-    },
-    getInitialState: function() {
-        return {degreeData: []};
-    },
-    componentDidMount: function() {
-        this.loadDegrees();
-    },
-    render: function() {
-        var degreeNodes = this.state.degreeData.map(function(degree, index) {
-            return (
-                <option value={degree.id}>{degree.program}</option>
-            );
-        });
+// mocking the logged in user
+var loggedInUser = { name: "John Smith", login: "jsmith123", id: "1234567890" };
+
+var LoggedInUser = React.createClass({
+    render : function() {
         return (
-            <div>
-            <select className="form-control" name="degree">
-                {degreeNodes}
-            </select>
-            </div>
-        );
+            <div>logged in as <strong>{loggedInUser.name}</strong> ({loggedInUser.login})</div>
+        )
     }
 });
 
+React.renderComponent(
+    <LoggedInUser/>
+    ,
+    document.getElementById('loggedInUser')
+);
+
+///* A selector for degrees */
+//var DegreeSelect = React.createClass({
+//    loadDegrees: function() {
+//        $.ajax({
+//            url: this.props.url,
+//            dataType: 'json',
+//            success: function(data) {
+//                this.setState({degreeData: data});
+//            }.bind(this),
+//            error: function(xhr, status, err) {
+//                console.error(this.props.url, status, err.toString());
+//            }.bind(this)
+//        });
+//    },
+//    getInitialState: function() {
+//        return {degreeData: []};
+//    },
+//    componentDidMount: function() {
+//        this.loadDegrees();
+//    },
+//    render: function() {
+//        var degreeNodes = this.state.degreeData.map(function(degree, index) {
+//            return (
+//                <option value={degree.id}>{degree.type} - {degree.program}</option>
+//            );
+//        });
+//        return (
+//            <div>
+//            <select className="form-control" name="degree">
+//                {degreeNodes}
+//            </select>
+//            </div>
+//        );
+//    }
+//});
+
 var AuditForm = React.createClass({
+
     handleSubmit: function(e) {
         e.preventDefault();
-        var degreeId = this.refs.degree.getDOMNode().value.trim();
-        if (!degreeId) {
-            return;
-        }
-        this.props.onCourseSubmit({degreeId: degreeId});
-        this.refs.degree.getDOMNode().value = '';
-        return;
+        var degreeId = this.refs.degreeId.getDOMNode().value.trim();
+        this.setState({ degreeData: this.state.degreeData, degreeId: degreeId });
     },
+
+    loadDegrees: function() {
+        var degreesUrl = "degrees/";
+        $.ajax({
+            url: degreesUrl,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({degreeData : data, degreeId : this.state.degreeId});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(degreesUrl, status, err.toString());
+            }.bind(this)
+        });
+    },
+
+    getInitialState: function() {
+        return {degreeData: [], degreeId : ""};
+    },
+
+    componentDidMount: function() {
+        this.loadDegrees();
+    },
+
     render: function() {
+        var degreeNodes = this.state.degreeData.map(function(degree, index) {
+            return (
+                <option value={degree.id}>{degree.type} - {degree.program}</option>
+            );
+        });
+
+        var selectControl = (
+            <div>
+                <select className="form-control" name="degree" ref="degreeId">
+                                {degreeNodes}
+                </select>
+            </div>
+        );
+
         return (
-            <form className="auditForm" role="form" onSubmit={this.handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="degree">Select program</label>
-                    <DegreeSelect url="degrees/" />
-                </div>
-                <button type="submit" className="btn btn-default">Submit</button>
-            </form>
+            <span>
+                <form className="auditForm" role="form" onSubmit={this.handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="degree">Select program (only CS works currently)</label>
+                        {selectControl}
+                    </div>
+                    <button type="submit" className="btn btn-default">Submit</button>
+                </form>
+                <AuditResults studentId={loggedInUser.id} degreeId={this.state.degreeId} />
+            </span>
         );
     }
 });
@@ -103,25 +156,34 @@ var AuditHeader = React.createClass({
 })
 
 var AuditResults = React.createClass({
-    loadAudit: function() {
-        $.ajax({
-            url: this.props.url,
-            dataType: 'json',
-            success: function(auditData) {
-                this.setState({data: auditData});
-            }.bind(this),
-            error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this)
-        });
+    loadAudit: function(nextProps) {
+        if (nextProps.degreeId && nextProps.studentId) {
+            var url = "audit/degrees/" + nextProps.degreeId + "/students/" + nextProps.studentId;
+
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                success: function (auditData) {
+                    this.setState({data: auditData});
+                }.bind(this),
+                error: function (xhr, status, err) {
+                    console.error(url, status, err.toString());
+                }.bind(this)
+            });
+        }
     },
     getInitialState: function() {
         return {data: []};
     },
     componentDidMount: function() {
-        this.loadAudit();
+        this.loadAudit(this.props);
+    },
+    componentWillReceiveProps: function(nextProps) {
+        this.loadAudit(nextProps);
     },
     render: function() {
+        if (this.state.data.length == 0) return ( <div/> );
+
         var metNodes = "";
         if (this.state.data.metRequirements) {
             metNodes = this.state.data.metRequirements.map(function(req, index) {
@@ -266,7 +328,6 @@ var AuditBox = React.createClass({
         return (
             <div>
                 <AuditForm />
-                <AuditResults url="audit/degrees/BS-CS/students/1234567890" degreeId="BS-CS" />
             </div>
         );
     }
