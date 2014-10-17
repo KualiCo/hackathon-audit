@@ -26,7 +26,7 @@ app.get('/', function*(next) {
 
 // TODO: you really wouldn't want to expose this "resource"
 app.get('/bootstrap', function*(next) {
-    persistence.bootstrap();
+    persistence.bootstrap(true);
     this.body = "database reset"
 });
 
@@ -116,4 +116,7 @@ function getMessage() {
 }
 
 server.listen(3000);
+
+// create database if needed
+persistence.bootstrap(false);
 console.log('server listening on port 3000');

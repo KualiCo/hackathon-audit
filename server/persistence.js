@@ -9,13 +9,14 @@ var onConnect = function(callback) {
         if (err) throw err;
         connection = conn;
 
-        callback(null, connection);
+        callback(null, conn);
     })
 };
 
 // TODO: this should init at startup, but someone could conceivably make a call before it's inited -- use a Promise
 onConnect(function(err, conn) {
     connection = conn;
+    connection.use('audit');
 })
 
 var CRUDService = function (t) {
@@ -94,29 +95,43 @@ exports.Requirement = CRUDService('requirements');
 exports.Degree = CRUDService('degrees');
 
 
-exports.bootstrap = function() {
+exports.bootstrap = function(force) {
     // TODO: extract database config
 
     var model = require("./model.json");
 
     onConnect(function (err, connection) {
-        if (r.dbList().contains('audit')) {
-            r.dbDrop('audit').run(connection, function() {});
-        }
 
-        r.dbCreate('audit').run(connection, function() {});;
-        connection.use('audit');
-
-        ['courses', 'students', 'requirements', 'degrees'].forEach(function(tableName) {
-            r.db('audit').tableCreate(tableName).run(connection, function (err, result) {
+        r.dbList().run(connection,
+            function(err, dblist) {
                 if (err) throw err;
-                console.log("create table ", tableName ,": ", JSON.stringify(result, null, 2));
-            })
 
-            r.table(tableName).insert(model[tableName]).run(connection, function (err, result) {
-                if (err) throw err;
-                console.log("insert bootstrap data into ", tableName, ": ", JSON.stringify(result, null, 2));
-            })
-        })
+                console.log('result: ', dblist)
+
+                var dbExists = dblist.indexOf('audit') != -1;
+
+                if (dbExists && force) {
+                    r.dbDrop('audit').run(connection, function() {});
+                }
+
+                if (!dbExists || force) {
+                    r.dbCreate('audit').run(connection, function() {});;
+                    connection.use('audit');
+
+                    ['courses', 'students', 'requirements', 'degrees'].forEach(function(tableName) {
+                        r.db('audit').tableCreate(tableName).run(connection, function (err, result) {
+                            if (err) throw err;
+                            console.log("create table ", tableName ,": ", JSON.stringify(result, null, 2));
+                        })
+
+                        r.table(tableName).insert(model[tableName]).run(connection, function (err, result) {
+                            if (err) throw err;
+                            console.log("insert bootstrap data into ", tableName, ": ", JSON.stringify(result, null, 2));
+                        })
+                    })
+
+                }
+            }
+        )
     });
 }
