@@ -106,8 +106,6 @@ exports.bootstrap = function(force) {
             function(err, dblist) {
                 if (err) throw err;
 
-                console.log('result: ', dblist)
-
                 var dbExists = dblist.indexOf('audit') != -1;
 
                 if (dbExists && force) {
