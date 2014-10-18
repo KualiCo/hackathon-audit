@@ -1,4 +1,4 @@
-Welcome to Hack Week! :)
+Course Audit toy
 
 ##Prereqs
 
@@ -12,7 +12,24 @@ Welcome to Hack Week! :)
 
 ##Hack on it
 
-In two different terminal sessions run:
+In three different terminal sessions run:
 
- - `npm start`
+ - `rethinkdb`
  - `webpack -w`
+ - `npm start`
+
+The 'audit' database will be created on first start up
+
+##Browse it
+
+The app:
+
+- http://localhost:3000/
+
+The resources:
+
+- http://localhost:3000/students
+- http://localhost:3000/courses
+- http://localhost:3000/degrees
+- http://localhost:3000/requirements
+
