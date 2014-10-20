@@ -23,48 +23,56 @@ React.renderComponent(
     document.getElementById('loggedInUser')
 );
 
-///* A selector for degrees */
-//var DegreeSelect = React.createClass({
-//    loadDegrees: function() {
-//        $.ajax({
-//            url: this.props.url,
-//            dataType: 'json',
-//            success: function(data) {
-//                this.setState({degreeData: data});
-//            }.bind(this),
-//            error: function(xhr, status, err) {
-//                console.error(this.props.url, status, err.toString());
-//            }.bind(this)
-//        });
-//    },
-//    getInitialState: function() {
-//        return {degreeData: []};
-//    },
-//    componentDidMount: function() {
-//        this.loadDegrees();
-//    },
-//    render: function() {
-//        var degreeNodes = this.state.degreeData.map(function(degree, index) {
-//            return (
-//                <option value={degree.id}>{degree.type} - {degree.program}</option>
-//            );
-//        });
-//        return (
-//            <div>
-//            <select className="form-control" name="degree">
-//                {degreeNodes}
-//            </select>
-//            </div>
-//        );
-//    }
-//});
+/* A selector for degrees */
+var DegreeSelect = React.createClass({
+    loadDegrees: function() {
+        $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            success: function(data) {
+                this.setState({degreeData: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    getInitialState: function() {
+        return {degreeData: []};
+    },
+    componentDidMount: function() {
+        this.loadDegrees();
+    },
+    render: function() {
+        var degreeNodes = this.state.degreeData.map(function(degree, index) {
+            return (
+                <option value={degree.id}>{degree.type} - {degree.program}</option>
+            );
+        });
+        return (
+            <div>
+            <select id={this.props.inputId} className="form-control" name="degree">
+                <option value="">- select -</option>
+                {degreeNodes}
+            </select>
+            </div>
+        );
+    }
+});
 
 var AuditForm = React.createClass({
 
+    degreeInputId: 'degreeId',
+
     handleSubmit: function(e) {
         e.preventDefault();
-        var degreeId = this.refs.degreeId.getDOMNode().value.trim();
+        var degreeId = document.getElementById(this.degreeInputId).value;
+
         this.setState({ degreeData: this.state.degreeData, degreeId: degreeId });
+    },
+
+    handleReset: function(e) {
+        this.setState({ degreeData: [], degreeId: undefined });
     },
 
     loadDegrees: function() {
@@ -90,28 +98,21 @@ var AuditForm = React.createClass({
     },
 
     render: function() {
-        var degreeNodes = this.state.degreeData.map(function(degree, index) {
-            return (
-                <option value={degree.id}>{degree.type} - {degree.program}</option>
-            );
-        });
-
-        var selectControl = (
-            <div>
-                <select className="form-control" name="degree" ref="degreeId">
-                                {degreeNodes}
-                </select>
-            </div>
-        );
-
         return (
             <span>
-                <form className="auditForm" role="form" onSubmit={this.handleSubmit}>
+                <form className="auditForm" role="form" onSubmit={this.handleSubmit} onReset={this.handleReset}>
                     <div className="form-group">
                         <label htmlFor="degree">Select program (only CS works currently)</label>
-                        {selectControl}
+                        <DegreeSelect inputId={this.degreeInputId} url="degrees/"/>
                     </div>
-                    <button type="submit" className="btn btn-default">Submit</button>
+                        <div className="row">
+                            <div className="col-md-1">
+                                <button type="submit" className="btn btn-primary">Submit</button>
+                            </div>
+                            <div className="col-md-1">
+                                <button type="reset" className="btn btn-default">Reset</button>
+                            </div>
+                        </div>
                 </form>
                 <AuditResults studentId={loggedInUser.id} degreeId={this.state.degreeId} />
             </span>
@@ -182,7 +183,7 @@ var AuditResults = React.createClass({
         this.loadAudit(nextProps);
     },
     render: function() {
-        if (this.state.data.length == 0) return ( <div/> );
+        if (!this.props.degreeId) return ( <div/> );
 
         var metNodes = "";
         if (this.state.data.metRequirements) {
